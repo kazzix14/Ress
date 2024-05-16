@@ -20,7 +20,7 @@ def use_state(name, initial_value)
   end
 
   define_method("set_#{name}") do |value|
-    raise 'must be inside dirty' unless @during_write
+    raise 'must be inside write block' unless @during_write
 
     instance_variable_set("@#{name}", value)
   end
