@@ -1,0 +1,15 @@
+doctype html
+html
+  head
+    title Slim Template
+  body
+    h1 Hello from Slim! 🫰🏻
+    - if validity
+      p 3の倍数
+    - else
+      p 3の倍数ではない
+    button[onclick='window.rubyVM.eval("set_count(count + 1)");'] くっりくしてね
+    p[style="background-color: #{validity ? 'green' : 'red'}"]
+      span くっりくした回数:
+      span = count
+      span 回
