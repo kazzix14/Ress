@@ -3,13 +3,40 @@
 require '/bundle/setup'
 require 'js'
 require 'slim'
+require 'json'
 
-def write
-  @during_write = true
-  yield
-  @during_write = false
+def upd(e = nil)
+  puts e
+  set_my_json(e)
+  JS.global[:document].getElementById('my-textarea').focus();
+end
 
-  render
+def my_component
+  use_state(:my_json, '{}')
+
+  @error = begin
+    JSON.parse(my_json.to_s)
+
+    nil
+  rescue JSON::ParserError => e
+    "JSON is invalid: #{e.message}"
+  end
+
+  Slim::Template.new {
+    <<~SLIM
+      javascript:
+      .my-class
+        .my-class-child
+        .my-header
+          .my-header-child
+          textarea#my-textarea[oninput='a = "upd(\\\\"" + String(this.value) + "\\\\")"; window.reval(a)']
+            = my_json
+        - if @error.nil?
+          | JSON is valid.
+        - else
+          = @error
+    SLIM
+  }.render(self)
 end
 
 def use_state(name, initial_value)
@@ -20,9 +47,11 @@ def use_state(name, initial_value)
   end
 
   define_method("set_#{name}") do |value|
-    raise 'must be inside write block' unless @during_write
+    puts "set_#{name}"
 
     instance_variable_set("@#{name}", value)
+
+    render
   end
 end
 
@@ -35,15 +64,11 @@ def validity
 end
 
 def handle_click
-  write do
-    set_count count + 1
-  end
+  set_count count + 1
 end
 
 def handle_click2
-  write do
-    set_word JS.global.fetch('/random_word').await.text.await
-  end
+  set_word JS.global.fetch('/random_word').await.text.await
 end
 
 def template
@@ -65,6 +90,7 @@ def template
           span くっりくした回数:
           span = count
           span 回
+        == my_component
   SLIM
 end
 
